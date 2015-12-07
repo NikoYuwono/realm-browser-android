@@ -5,6 +5,7 @@ import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,7 +86,13 @@ public class RealmBrowser {
                         htmlBuilder.setSelectedTableName(clazz);
                         htmlBuilder.startMainDisplayNavigation(selectedView);
                         if (selectedView != null && selectedView.equals(HtmlBuilder.CONTENT_VIEW)) {
-                            htmlBuilder.showTableContent(dynamicRealm);
+                            String fieldName = params.get("field_name");
+                            String queryValue = params.get("query_value");
+                            HashMap<String, String> queryMap = new HashMap<>();
+                            if (fieldName != null && queryValue != null) {
+                                queryMap.put(fieldName, queryValue);
+                            }
+                            htmlBuilder.showTableContent(dynamicRealm, queryMap);
                         } else {
                             htmlBuilder.showTableStructure(dynamicRealm);
                         }

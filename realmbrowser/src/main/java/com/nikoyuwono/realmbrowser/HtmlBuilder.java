@@ -2,6 +2,8 @@ package com.nikoyuwono.realmbrowser;
 
 import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import io.realm.DynamicRealm;
@@ -9,6 +11,7 @@ import io.realm.DynamicRealmObject;
 import io.realm.RealmFieldType;
 import io.realm.RealmObject;
 import io.realm.RealmObjectSchema;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.internal.Mixed;
 
@@ -74,7 +77,6 @@ public class HtmlBuilder {
 
     public String finish() {
         stringBuilder.append("</div>")
-//                .append(JAVASCRIPT)
                 .append("</body>")
                 .append("</html>");
         return stringBuilder.toString();
@@ -141,65 +143,100 @@ public class HtmlBuilder {
         Set<String> fieldNames = realmObjectSchema.getFieldNames();
         stringBuilder.append("<div class=\"content\">").append("<table class=\"dataTable\">")
                 .append("<th>Column Name</th><th>Type</th>");
-        for (String fieldName : fieldNames) {
-            Object object = realmResults.get(0).get(fieldName);
-            RealmFieldType realmFieldType = checkRealmFieldType(object);
-            stringBuilder.append("<tr>")
-                    .append("<td>").append(fieldName).append("</td>")
-                    .append("<td>").append(realmFieldType.name()).append("</td>")
-                    .append("</tr>");
+        if (realmResults.size() > 0) {
+            for (String fieldName : fieldNames) {
+                Object object = realmResults.get(0).get(fieldName);
+                RealmFieldType realmFieldType = checkRealmFieldType(object);
+                stringBuilder.append("<tr>")
+                        .append("<td>").append(fieldName).append("</td>")
+                        .append("<td>").append(realmFieldType.name()).append("</td>")
+                        .append("</tr>");
+            }
         }
         stringBuilder.append("</table></div>");
     }
 
-    public void showTableContent(DynamicRealm dynamicRealm) {
-        RealmObjectSchema realmObjectSchema = dynamicRealm.getSchema().get(simpleTableName);
-        RealmResults<DynamicRealmObject> realmResults = dynamicRealm.where(simpleTableName).findAll();
-        Set<String> fieldNames = realmObjectSchema.getFieldNames();
-        int columnCount = fieldNames.size();
-        int tableSize = realmResults.size();
-        String[] fieldNameArray = fieldNames.toArray(new String[columnCount]);
-        RealmFieldType[] realmFieldTypes = new RealmFieldType[columnCount];
-        stringBuilder.append("<div class=\"content\">").append("<table class=\"dataTable\">");
-        int index = 0;
-        for (String fieldName : fieldNameArray) {
-            Object object = realmResults.get(0).get(fieldName);
-            realmFieldTypes[index] = checkRealmFieldType(object);
-            stringBuilder.append("<th>").append(fieldName).append("</th>");
-            index++;
-        }
-
-        for (int i = 0; i < tableSize; i++) {
-            stringBuilder.append("<tr>");
-            DynamicRealmObject dynamicRealmObject = realmResults.get(i);
-            for (int j = 0; j < columnCount; j++) {
-                String columnName = fieldNameArray[j];
-                String value = "";
-                switch (realmFieldTypes[j]) {
-                    case INTEGER:
-                        value = String.valueOf(dynamicRealmObject.getLong(columnName));
-                        break;
-                    case BOOLEAN:
-                        value = String.valueOf(dynamicRealmObject.getBoolean(columnName));
-                        break;
-                    case FLOAT:
-                        value = String.valueOf(dynamicRealmObject.getFloat(columnName));
-                        break;
-                    case DOUBLE:
-                        value = String.valueOf(dynamicRealmObject.getDouble(columnName));
-                        break;
-                    case DATE:
-                        value = dynamicRealmObject.getDate(columnName).toString();
-                        break;
-                    case STRING:
-                        value = dynamicRealmObject.getString(columnName);
-                        break;
-                }
-                stringBuilder.append("<td>").append(value).append("</td>");
+    public void showTableContent(DynamicRealm dynamicRealm, HashMap<String, String> queryMap) {
+        try {
+            RealmObjectSchema realmObjectSchema = dynamicRealm.getSchema().get(simpleTableName);
+            RealmQuery<DynamicRealmObject> realmQuery = dynamicRealm.where(simpleTableName);
+            for (Map.Entry<String, String> entry : queryMap.entrySet()) {
+                String fieldName = entry.getKey();
+                String value = entry.getValue();
+                realmQuery.equalTo(fieldName, value);
             }
-            stringBuilder.append("</tr>");
+            RealmResults<DynamicRealmObject> realmResults = dynamicRealm.where(simpleTableName).findAll();
+            Set<String> fieldNames = realmObjectSchema.getFieldNames();
+            int columnCount = fieldNames.size();
+            int tableSize = realmResults.size();
+            String[] fieldNameArray = fieldNames.toArray(new String[columnCount]);
+            RealmFieldType[] realmFieldTypes = new RealmFieldType[columnCount];
+            stringBuilder.append("<div class=\"content\">");
+            if (tableSize > 0) {
+                showContentSearchBar(fieldNameArray);
+                stringBuilder.append("<table class=\"dataTable\">");
+                int index = 0;
+                for (String fieldName : fieldNameArray) {
+                    Object object = realmResults.get(0).get(fieldName);
+                    realmFieldTypes[index] = checkRealmFieldType(object);
+                    stringBuilder.append("<th>").append(fieldName).append("</th>");
+                    index++;
+                }
+
+                for (int i = 0; i < tableSize; i++) {
+                    stringBuilder.append("<tr>");
+                    DynamicRealmObject dynamicRealmObject = realmResults.get(i);
+                    for (int j = 0; j < columnCount; j++) {
+                        String columnName = fieldNameArray[j];
+                        String value = "";
+                        switch (realmFieldTypes[j]) {
+                            case INTEGER:
+                                value = String.valueOf(dynamicRealmObject.getLong(columnName));
+                                break;
+                            case BOOLEAN:
+                                value = String.valueOf(dynamicRealmObject.getBoolean(columnName));
+                                break;
+                            case FLOAT:
+                                value = String.valueOf(dynamicRealmObject.getFloat(columnName));
+                                break;
+                            case DOUBLE:
+                                value = String.valueOf(dynamicRealmObject.getDouble(columnName));
+                                break;
+                            case DATE:
+                                value = dynamicRealmObject.getDate(columnName).toString();
+                                break;
+                            case STRING:
+                                value = dynamicRealmObject.getString(columnName);
+                                break;
+                        }
+                        stringBuilder.append("<td>").append(value).append("</td>");
+                    }
+                    stringBuilder.append("</tr>");
+                }
+                stringBuilder.append("</table>");
+            }
+            stringBuilder.append("</div>");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        stringBuilder.append("</table></div>");
+    }
+
+    private void showContentSearchBar(String[] fieldNameArray) {
+        stringBuilder.append("<form id=\"query_form\">")
+                .append("<select name=\"field_name\" form=\"query_form\">");
+        for (String fieldName : fieldNameArray) {
+            String value = String.format("<option value=\"%s\">%s</option>", fieldName, fieldName);
+            stringBuilder.append(value);
+        }
+        String classNameHiddenInput =
+                String.format("<input type=\"hidden\" name=\"class_name\" value=\"%s\">", selectedTableName);
+        String selectedViewHiddenInput =
+                String.format("<input type=\"hidden\" name=\"selected_view\" value=\"%s\">", CONTENT_VIEW);
+        stringBuilder.append("</select>")
+                .append("<input type=\"text\" name=\"query_value\">")
+                .append(classNameHiddenInput)
+                .append(selectedViewHiddenInput)
+                .append("</form>");
     }
 
     private RealmFieldType checkRealmFieldType(Object obj) {
