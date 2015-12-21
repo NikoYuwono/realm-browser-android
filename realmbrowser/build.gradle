@@ -21,5 +21,5 @@ android {
 dependencies {
     testCompile 'junit:junit:4.12'
     compile 'org.nanohttpd:nanohttpd:2.2.0'
-    compile 'io.realm:realm-android:0.86.0'
+    compile 'io.realm:realm-android:0.87.0'
 }
