@@ -11,6 +11,14 @@ To use this library you can create an instance of RealmBrowser and then call `Re
 
 To access RealmBrowser from your browser your Android device and PC/Mac need to be on the same network. And then you can call `realmBrowser.showServerAddress(this);` to show the address in logcat.
 
+## Download
+
+You can grab it via Gradle :
+
+```
+compile 'com.nikoyuwono:realm-browser:0.1'
+```
+
 ## TODO list
 
 1. Implement advanced search function (Basic search is available)
