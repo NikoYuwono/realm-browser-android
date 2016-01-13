@@ -2,6 +2,9 @@
 
 Realm browser that can be used to see tables, structure and content. This browser can be accessed from localhost that hosted by the Android device. To achieve that I'm using NanoHTTPD library.
 
+![sample](realm_browser_sample.png)
+
+
 ## Usage
 
 To use this library you can create an instance of RealmBrowser and then call `RealmBrowser.start();` you can also set the port if you want. Don't forget to call `RealmBrowser.stop();` after you finished.
@@ -10,7 +13,7 @@ To access RealmBrowser from your browser your Android device and PC/Mac need to 
 
 ## TODO list
 
-1. Implement search function
+1. Implement advanced search function (Basic search is available)
 2. Implement sort function
 
 Any feedbacks, issues or pull requests would be greatly appreciated.

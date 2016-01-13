@@ -1,1 +1,1 @@
-include ':sample', ':realmbrowser'
+include ':sample', ':realm-browser'
